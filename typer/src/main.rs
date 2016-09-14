@@ -1,11 +1,6 @@
 extern crate ncurses;
 use ncurses::*;
 
-
-const WORD_LINES: i32 = 2;
-const BLANK_LINES: i32 = WORD_LINES + 1;
-const TIME: i32 = 60;
-
 /**/
 struct Point {
     x: i32,
@@ -13,64 +8,87 @@ struct Point {
 }
 
 /**/
-impl Point {
-    fn new(x: i32, y: i32) -> Point {
-        Point { x: x, y: y }
-    }
-
-}
-
-/**/
 struct Block {
     start: Point,
+    end: Point, 
     size: Point,
 }
 
+trait Convert {
+    fn convert(&self) -> bool;
+}
+
 impl Block {
-    
-    fn new(start: Point, size: Point) -> Block {
-        let (x,y) = (start.x, start.y);
-        Block {
-            start: start,
-            size: Point::new(x + size.x + 1, y + size.y + 1),
+
+    // Initialize a Block. Only need a start and size points,
+    // the end Point is created here.
+    fn new (start: Point, size: Point) -> Block {
+        let endx = size.x + start.x + 1;
+        let endy = size.y + start.y + 1;
+
+        Block { start: start,
+                size: size,
+                end: Point { x: endx, y: endy },
         }
     }
 
+    // Draw the box based on it's given size and location
+    fn draw_block(&self) {
+        for n in self.start.x+1..self.end.x {
+            mvaddch(self.start.y, n, 45);
+            mvaddch(self.end.y, n, 45);
+        }
+    
+        for i in self.start.y+1..self.end.y {
+            mvaddch(i, self.start.x, 124);
+            mvaddch(i, self.end.x, 124);
+        }
+    }
+    
+    // Clear the block's area of content
+    fn clear_block (&self) {
+        for i in self.start.y+1..self.end.y {
+            for j in self.start.x+1..self.end.x {
+                mvaddch(i, j, 32);
+            }
+        }
+        refresh();
+    }
+
+    fn write_block<T: Convert>(&self, content: T) -> bool {
+        mv(self.start.y+1, self.start.x+1);
+        printw("Hello");
+        true
+    }
 }
 
-/**/
-struct Stats {
-    correct: i32,
-    incorrect: i32,
-}
 
-/**/
 fn main() {
     initscr();
     cbreak();
-    setup_scr();
+    let b = Block::new( Point { x: 5,  y: 5 },
+                        Point { x: 75, y: 5 },
+                 );
+    let e = Block::new( Point { x: 5,  y: 15 },
+                        Point { x: 10, y: 1 },
+                 );
+    b.draw_block();
+    e.draw_block();
+    
     refresh();
     getch();
     endwin();
 }
 
-/**/
-fn setup_scr() {
-    let block = Block::new( Point::new(4,4), 
-                            Point::new(75,WORD_LINES + BLANK_LINES), 
-    );
-
-    draw_block(block.start, block.size);
+/*  This is how the content types will be set up.
+struct Test {
+    val: i32,
 }
 
-fn draw_block(start: Point, size: Point) {
-    for n in start.x+1..size.x {
-        mvaddch(start.y, n, 45);
-        mvaddch(size.y, n, 45);
-    }
-    
-    for i in start.y+1..size.y {
-        mvaddch(i, start.x, 124);
-        mvaddch(i, size.x, 124);
+impl Convert for Test {
+    fn convert(&self) -> bool{
+        printw("\nHERE");
+        true
     }
 }
+*/
