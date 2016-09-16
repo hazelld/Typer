@@ -1,5 +1,6 @@
 extern crate ncurses;
 
+// TODO: I
 use std::str;
 use ncurses::*;
 
@@ -65,7 +66,7 @@ impl Block {
 
         // Determine if there is room to print. If the block is full then exit function
         if check_move(oldx, size, self.end.x) == false {   
-            if check_move(oldy, 2, self.end.y) == false {
+            if check_move(oldy, 2, self.end.y-1) == false {
                 return(Point { x: 0, y: 0 }, false);
             } else {
                 
@@ -95,7 +96,7 @@ impl Block {
 }
 
 fn check_move ( cur: i32, size: i32, end: i32) -> bool { 
-    if cur + size >= end {  return false; }
+    if cur + size > end {  return false; }
     true
 }
  
@@ -107,7 +108,7 @@ fn main() {
     let mut b = Block::new( Point { x: 5,  y: 5 },
                         Point { x: 75, y: 5 },
                  );
-    let e = Block::new( Point { x: 5,  y: 15 },
+    let mut e = Block::new( Point { x: 5,  y: 15 },
                         Point { x: 10, y: 1 },
                  );
     b.draw_block();
@@ -115,10 +116,10 @@ fn main() {
     let mut done = false;
 
     while !done {
-        let (p, a) = b.write_block("Hello ");    
+        let (p, a) = e.write_block("-");    
     
         if a == false {
-            b.clear_block();
+            e.clear_block();
             //done = true;
         }
         getch();
