@@ -1,6 +1,9 @@
 extern crate ncurses;
+
+use std::str;
 use ncurses::*;
 
+#[derive(Copy)]
 
 struct Point {
     x: i32,
@@ -53,16 +56,28 @@ impl Block {
     }
 
     // Write content into the block at the current cursor position.
+    // Returns the starting point of what was printed
     // TODO: Take colour as arg
-    fn write_block(&self, /*content: String*/) -> bool {
-        mv(self.start.y+1, self.start.x+1);
-        printw("Hello");
-        true
+    fn write_block(&self, content: &str) -> Point {
+        let size = content.len();
+        let oldx = self.cursor.x;
+        let oldy = self.cursor.y;
+
+        mv(self.cursor.x, self.cursor.y);
+        
+        //Check for size of block and if there is room to print
+        printw(content);
+        
+        let ret = self.cursor;
+        self.cursor.x = oldx + size as i32;
+        self.cursor.y = oldy + 0;
+
+        ret
     }
 
     // Update a part of the block without moving the cursor
     // TODO: take colour as an arg
-    fn update_block (&self, location: Point, content: String) {
+    fn update_block (&self, location: Point, content: &str) {
 
     }
     
@@ -82,7 +97,7 @@ fn main() {
     b.draw_block();
     e.draw_block();
     
-    b.write_block();
+    b.write_block("Hello");
     refresh();
     getch();
     endwin();
