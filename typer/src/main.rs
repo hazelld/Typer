@@ -3,8 +3,7 @@ extern crate ncurses;
 use std::str;
 use ncurses::*;
 
-#[derive(Copy)]
-
+#[derive(Clone,Copy)]
 struct Point {
     x: i32,
     y: i32,
@@ -45,34 +44,45 @@ impl Block {
         }
     }
     
-    // Clear the block's area of content
-    fn clear_block (&self) {
+    // Clear the block's area of content, point cursor to start
+    fn clear_block (&mut self) {
         for i in self.start.y+1..self.end.y {
             for j in self.start.x+1..self.end.x {
                 mvaddch(i, j, 32);
             }
         }
+        self.cursor = Point { x: self.start.x + 1, y: self.start.y + 1 };
         refresh();
     }
 
     // Write content into the block at the current cursor position.
-    // Returns the starting point of what was printed
+    // Returns the starting point of what was printed and the result of attempted write
     // TODO: Take colour as arg
-    fn write_block(&self, content: &str) -> Point {
-        let size = content.len();
+    fn write_block(&mut self, content: &str) -> (Point, bool) {
+        let size = content.len() as i32;
         let oldx = self.cursor.x;
         let oldy = self.cursor.y;
 
-        mv(self.cursor.x, self.cursor.y);
-        
-        //Check for size of block and if there is room to print
-        printw(content);
-        
-        let ret = self.cursor;
-        self.cursor.x = oldx + size as i32;
-        self.cursor.y = oldy + 0;
+        // Determine if there is room to print. If the block is full then exit function
+        if check_move(oldx, size, self.end.x) == false {   
+            if check_move(oldy, 2, self.end.y) == false {
+                return(Point { x: 0, y: 0 }, false);
+            } else {
+                
+                // Move the cursor 2 lines down and back to start
+                self.cursor.y += 2;
+                self.cursor.x = self.start.x + 1;
+            }
+        }
 
-        ret
+        // Move to start and print
+        mv(self.cursor.y, self.cursor.x);
+        printw(content);
+        refresh();
+        
+        // Update the cursors position after the write
+        self.cursor.x += size;
+        return (Point { x: oldx, y: oldy }, true)
     }
 
     // Update a part of the block without moving the cursor
@@ -84,11 +94,17 @@ impl Block {
     
 }
 
-
+fn check_move ( cur: i32, size: i32, end: i32) -> bool { 
+    if cur + size >= end {  return false; }
+    true
+}
+ 
 fn main() {
     initscr();
     cbreak();
-    let b = Block::new( Point { x: 5,  y: 5 },
+    noecho();
+
+    let mut b = Block::new( Point { x: 5,  y: 5 },
                         Point { x: 75, y: 5 },
                  );
     let e = Block::new( Point { x: 5,  y: 15 },
@@ -96,10 +112,19 @@ fn main() {
                  );
     b.draw_block();
     e.draw_block();
+    let mut done = false;
+
+    while !done {
+        let (p, a) = b.write_block("Hello ");    
     
-    b.write_block("Hello");
+        if a == false {
+            b.clear_block();
+            //done = true;
+        }
+        getch();
+    }
+
     refresh();
-    getch();
     endwin();
 }
 
