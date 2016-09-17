@@ -65,18 +65,11 @@ impl Block {
         let oldy = self.cursor.y;
 
         // Determine if there is room to print. If the block is full then exit function
-        if check_move(oldx, size, self.end.x) == false {   
-            if check_move(oldy, 2, self.end.y-1) == false {
-                return(Point { x: 0, y: 0 }, false);
-            } else {
-                
-                // Move the cursor 2 lines down and back to start
-                self.cursor.y += 2;
-                self.cursor.x = self.start.x + 1;
-            }
-        }
-
+        let (buff_point, result) = get_point(self.cursor, self.end, self.start, size);
+        if result == false { return (buff_point, result); }
+    
         // Move to start and print
+        self.cursor = buff_point;
         mv(self.cursor.y, self.cursor.x);
         printw(content);
         refresh();
@@ -91,8 +84,21 @@ impl Block {
     fn update_block (&self, location: Point, content: &str) {
 
     }
+}
+
+//TODO: Fix this fucking goddamn naming
+fn get_point ( start: Point, end: Point, block_origin: Point, size: i32) -> (Point, bool) {
     
-    
+    if check_move(start.x, size, end.x) == false {
+        if check_move(start.y, 2, end.y-1) == false {
+            return ( Point { x: 0, y: 0 }, false );
+        } else {
+            return (Point { x: block_origin.x + 1, y: start.y + 2 }, true);
+        }
+    }
+
+    // If we do nothing return nothing 
+    ( Point { x: start.x, y: start.y }, true )
 }
 
 fn check_move ( cur: i32, size: i32, end: i32) -> bool { 
@@ -116,10 +122,10 @@ fn main() {
     let mut done = false;
 
     while !done {
-        let (p, a) = e.write_block("-");    
+        let (p, a) = b.write_block("-");    
     
         if a == false {
-            e.clear_block();
+            b.clear_block();
             //done = true;
         }
         getch();
