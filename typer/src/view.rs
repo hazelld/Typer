@@ -9,6 +9,7 @@ pub enum Colour {
     Correct,
     Incorrect,
     Current,
+    Nothing,
 }
 
 // Pairings of colours 
@@ -26,11 +27,11 @@ pub struct Point {
 }
 
 impl Point {
-
     pub fn new (x: i32, y: i32) -> Point {
         Point { x: x, y: y }
     }
 }
+
 
 pub struct Block {
     start: Point,
@@ -38,7 +39,6 @@ pub struct Block {
     size: Point,
     cursor: Point,
 }
-
 
 impl Block {
 
@@ -82,19 +82,19 @@ impl Block {
     // Write content into the block at the current cursor position.
     // Returns the starting point of what was printed and the result of attempted write
     // TODO: Take colour as arg
-    pub fn write_block(&mut self, content: &str) -> (Point, bool) {
+    pub fn write_block(&mut self, content: String) -> (Point, bool) {
         let size = content.len() as i32;
         let oldx = self.cursor.x;
         let oldy = self.cursor.y;
 
         // Determine if there is room to print. If the block is full then exit function
-        let (buff_point, result) = get_point(self.cursor, self.end, self.start, size);
+        let (buff_point, result) = get_new_point(self.cursor, self.end, self.start, size);
         if result == false { return (buff_point, result); }
     
         // Move to start and print
         self.cursor = buff_point;
         mv(self.cursor.y, self.cursor.x);
-        printw(content);
+        printw(&content);
         refresh();
         
         // Update the cursors position after the write
@@ -106,7 +106,7 @@ impl Block {
     pub fn update_block (&mut self, location: Point, content: &str, state: Colour) -> bool {
         let size = content.len() as i32;
 
-        let (buff_point, result) = get_point(location, self.end, self.start, size);
+        let (buff_point, result) = get_new_point(location, self.end, self.start, size);
         if result == false { return false; }
 
         // We cant update any other line so verify the y-value didnt change
@@ -123,8 +123,12 @@ impl Block {
     }
 }
 
-//TODO: Fix this fucking goddamn naming
-fn get_point ( start: Point, end: Point, block_origin: Point, size: i32) -> (Point, bool) {
+// Check if the current location is large enough to fit the given size. If there is not 
+// enough room on the current line, move down 2 lines and check if there is room there.
+//
+// Returns: First open location that fits the string, True if there was an open spot
+//          False if there is no open space in the block
+fn get_new_point ( start: Point, end: Point, block_origin: Point, size: i32) -> (Point, bool) {
     
     if check_move(start.x, size, end.x) == false {
         if check_move(start.y, 2, end.y-1) == false {
@@ -150,6 +154,7 @@ fn get_attr (state: Colour) -> attr_t {
         Colour::Incorrect => { COLOR_PAIR(COLOUR_PAIR_INCORRECT) },
         Colour::Correct => { COLOR_PAIR(COLOUR_PAIR_CORRECT) },
         Colour::Current => { A_STANDOUT() },
+        Colour::Nothing => { 0 },
     }
 }
 
