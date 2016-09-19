@@ -33,6 +33,7 @@ impl Point {
 }
 
 
+#[derive(Clone, Copy)]
 pub struct Block {
     start: Point,
     end: Point, 
