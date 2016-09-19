@@ -56,7 +56,7 @@ pub fn write_wordlist (mut word_view: Block, words: &mut Vec<Word>) {
         let (location, result) = word_view.write_block(text);
                 
         if result == false { 
-            done = false; 
+            done = true; 
         } else {
             wordref.location = location;
             index += 1;
