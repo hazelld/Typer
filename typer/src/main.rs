@@ -1,6 +1,5 @@
 extern crate ncurses;
 
-use std::str;
 use ncurses::*;
 use view::*;
 
@@ -13,7 +12,7 @@ fn main() {
 
     let words = &mut wordlist::load_wordlist("wordlist.txt");
     
-    let mut b = Block::new( 
+    let b = Block::new( 
                         Point::new(5, 5),
                         Point::new(75, 5),
                  );
@@ -27,6 +26,7 @@ fn main() {
     e.draw_block();
 
     wordlist::write_wordlist(b, words);
+    getch();
     /*
     let done = false;
     while !done {

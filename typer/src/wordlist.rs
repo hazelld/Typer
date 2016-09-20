@@ -25,13 +25,13 @@ pub fn load_wordlist (filename: &str) -> Vec<Word> {
     let path = Path::new(filename);
     let display = path.display();
 
-    let mut file = match File::open(&path) {
+    let file = match File::open(&path) {
         
         Err(e) => panic!("Couldn't open {}: {}", display, e.description()),
         Ok(file) => file,
     };
 
-    let mut fh = BufReader::new(file);
+    let fh = BufReader::new(file);
 
     let mut vec = Vec::new();
     for line in fh.lines().filter_map(|result| result.ok()) {
