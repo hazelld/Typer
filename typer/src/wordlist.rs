@@ -1,9 +1,13 @@
+extern crate rand;
+
 use std::io::BufReader;
 use std::fs::File;
 use std::str;
 use std::error::Error;
 use std::io::prelude::*;
 use std::path::Path;
+use self::rand::Rng;
+use self::rand::thread_rng;
 
 use view::*;
 
@@ -38,7 +42,9 @@ pub fn load_wordlist (filename: &str) -> Vec<Word> {
         vec.push(Word::new(line));
     }
     
-    return vec;
+    //Randomize the vector and return
+    thread_rng().shuffle(vec.as_mut_slice());
+    vec
 }
 
 // Write the wordlist to the proper view

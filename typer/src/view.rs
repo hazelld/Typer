@@ -4,7 +4,7 @@ use std::str;
 use ncurses::*;
 
 
-// Set the different colours
+// These are the different colour states possible
 pub enum Colour {
     Correct,
     Incorrect,
@@ -82,7 +82,6 @@ impl Block {
 
     // Write content into the block at the current cursor position.
     // Returns the starting point of what was printed and the result of attempted write
-    // TODO: Take colour as arg
     pub fn write_block(&mut self, content: String) -> (Point, bool) {
         let size = content.len() as i32;
         let oldx = self.cursor.x;
@@ -103,7 +102,8 @@ impl Block {
         return (Point { x: oldx, y: oldy }, true)
     }
 
-    // Update a part of the block without moving the cursor
+    // Update a part of the block without moving the cursor. Update the colour of the location
+    // as well. Return the result of the update
     pub fn update_block (&mut self, location: Point, content: &str, state: Colour) -> bool {
         let size = content.len() as i32;
 
@@ -131,8 +131,8 @@ impl Block {
 //          False if there is no open space in the block
 fn get_new_point ( start: Point, end: Point, block_origin: Point, size: i32) -> (Point, bool) {
     
-    if check_move(start.x, size, end.x) == false {
-        if check_move(start.y, 2, end.y-1) == false {
+    if check_write_size(start.x, size, end.x) == false {
+        if check_write_size(start.y, 2, end.y-1) == false {
             return ( Point { x: 0, y: 0 }, false );
         } else {
             return (Point { x: block_origin.x + 1, y: start.y + 2 }, true);
@@ -143,14 +143,14 @@ fn get_new_point ( start: Point, end: Point, block_origin: Point, size: i32) -> 
     ( Point { x: start.x, y: start.y }, true )
 }
 
-fn check_move ( cur: i32, size: i32, end: i32) -> bool { 
+// Check if there is enough space to make the write
+fn check_write_size ( cur: i32, size: i32, end: i32) -> bool { 
     if cur + size > end {  return false; }
     true
 }
 
-
+// Return the attr_t that corresponds to the Colour value
 fn get_attr (state: Colour) -> attr_t {
-    
     match state {
         Colour::Incorrect => { COLOR_PAIR(COLOUR_PAIR_INCORRECT) },
         Colour::Correct => { COLOR_PAIR(COLOUR_PAIR_CORRECT) },
@@ -159,15 +159,14 @@ fn get_attr (state: Colour) -> attr_t {
     }
 }
 
+// Init ncurses 
 pub fn init_view() {
     initscr();
     cbreak();
     noecho();
-    
-    //use_default_colors();
     start_color();
 
-    // -1 as bg keeps the default
+    // 0 as bg argument keeps the default terminal colour
     init_pair(COLOUR_PAIR_INCORRECT, COLOUR_INCORRECT, 0); 
     init_pair(COLOUR_PAIR_CORRECT, COLOUR_CORRECT, 0);
     
