@@ -165,6 +165,8 @@ pub fn init_view() {
     cbreak();
     noecho();
     start_color();
+    raw();
+    halfdelay(1);
 
     // 0 as bg argument keeps the default terminal colour
     init_pair(COLOUR_PAIR_INCORRECT, COLOUR_INCORRECT, 0); 
