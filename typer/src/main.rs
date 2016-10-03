@@ -41,21 +41,36 @@ fn main() {
     wordlist::write_wordlist(word_block, words);
     time_block.write_block(sec_left.to_string());
     
-    let ch = getch();
-
+    
     let end = chan::tick_ms(60000);
     let timer = chan::tick_ms(1000);
+
+    let (send, recv) = chan::sync(0);
+
+    // Get input on seperate thread
+    thread::spawn(move || {
+        loop {
+
+            chan_select! {
+                default => {
+                    let ch = getch();
+            
+                    if ch > 0 {
+                        input_block.write_block(((ch as u8) as char).to_string());
+                    }
+                },
+
+                // Exit thread when given signal 
+                recv.recv() => {
+                    return;
+                },
+            }
+        }
+    });
 
     loop {
 
         chan_select! {
-            default => {
-                let ch = getch();
-                
-                if ch > 0 {
-                    input_block.write_block(((ch as u8) as char).to_string());
-                }
-            },
 
             timer.recv() => {
                 sec_left = sec_left - 1;
@@ -64,6 +79,7 @@ fn main() {
             },
             
             end.recv() => {
+                send.send(());
                 endwin();
                 return;
             },

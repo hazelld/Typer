@@ -145,8 +145,7 @@ fn get_new_point ( start: Point, end: Point, block_origin: Point, size: i32) -> 
 
 // Check if there is enough space to make the write
 fn check_write_size ( cur: i32, size: i32, end: i32) -> bool { 
-    if cur + size > end {  return false; }
-    true
+    return (cur + size) <= end;
 }
 
 // Return the attr_t that corresponds to the Colour value
@@ -166,7 +165,6 @@ pub fn init_view() {
     noecho();
     start_color();
     raw();
-    halfdelay(1);
 
     // 0 as bg argument keeps the default terminal colour
     init_pair(COLOUR_PAIR_INCORRECT, COLOUR_INCORRECT, 0); 
