@@ -30,6 +30,10 @@ impl Point {
     pub fn new (x: i32, y: i32) -> Point {
         Point { x: x, y: y }
     }
+
+    pub fn get_y (&self) -> i32{
+        self.y
+    }
 }
 
 
@@ -85,7 +89,7 @@ impl Block {
     pub fn write_block(&mut self, content: String) -> (Point, bool) {
         let size = content.len() as i32;
         let oldx = self.cursor.x;
-        let oldy = self.cursor.y;
+        //let oldy = self.cursor.y;
 
         // Determine if there is room to print. If the block is full then exit function
         let (buff_point, result) = get_new_point(self.cursor, self.end, self.start, size);
@@ -99,12 +103,12 @@ impl Block {
         
         // Update the cursors position after the write
         self.cursor.x += size;
-        return (Point { x: oldx, y: oldy }, true)
+        return (Point { x: oldx, y: self.cursor.y }, true)
     }
 
     // Update a part of the block without moving the cursor. Update the colour of the location
     // as well. Return the result of the update
-    pub fn update_block (&mut self, location: Point, content: &str, state: Colour) -> bool {
+    pub fn update_block (&mut self, location: Point, content: String, state: Colour) -> bool {
         let size = content.len() as i32;
 
         let (buff_point, result) = get_new_point(location, self.end, self.start, size);
@@ -117,7 +121,7 @@ impl Block {
         
         let attr = get_attr(state);
         attron(attr);
-        printw(content);
+        printw(&content);
         attroff(attr);
         refresh();
         true

@@ -12,14 +12,14 @@ use self::rand::thread_rng;
 use view::*;
 
 pub struct Word {
-    word: String,
-    state: Colour,
-    location: Point,
+    pub word: String,
+    pub state: Colour,
+    pub location: Point,
 }
 
 impl Word {
-    fn new(word: String) -> Word {
-        Word { word: word, state: Colour::Nothing, location: Point::new(0,0) }
+    pub fn new(word: String, state: Colour, location: Point) -> Word {
+        Word { word: word, state: state, location: location}
     }
 }
 
@@ -39,7 +39,7 @@ pub fn load_wordlist (filename: &str) -> Vec<Word> {
 
     let mut vec = Vec::new();
     for line in fh.lines().filter_map(|result| result.ok()) {
-        vec.push(Word::new(line));
+        vec.push(Word::new(line, Colour::Nothing, Point::new(0,0)));
     }
     
     //Randomize the vector and return
