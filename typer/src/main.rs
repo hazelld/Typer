@@ -51,8 +51,11 @@ fn main() {
     
     let end = chan::tick_ms(60000);
     let timer = chan::tick_ms(1000);
-
     let (send, recv) = chan::sync(0);
+    
+    // Keep track of user's string and current word
+    let mut user_str = String::new();
+    let mut cur_word = words[0];
 
     // Get input on seperate thread
     thread::spawn(move || {
@@ -63,11 +66,8 @@ fn main() {
                     let ch = getch();
             
                     if ch > 0 {
-                        input_block.write_block(((ch as u8) as char).to_string());
-                        
-                        word_block.clear_block();
-                        handler::scroll_wordlist_up(&mut words, 6);
-                        wordlist::write_wordlist(word_block, &mut words);
+                        user_str = handle_input(cur_word, user_str, input_block, 
+                                                ch as u8, word_block);
                     }
                 },
 
@@ -97,6 +97,25 @@ fn main() {
             
         }
     }
-
 }
 
+fn handle_input (cur_word: Word,/*, word_list: &mut Vec<Word>,*/ user_str: String,
+                 mut in_block: Block, input_char: u8, mut word_block: Block) -> String {
+    word_block.clear_block();
+    
+    match input_char {       
+        127 => return "backspace".to_string(),
+        27 => return "exit".to_string(),
+        32 => return "space".to_string(),
+        97 ... 122 => char_input(user_str, word_block, in_block, input_char as char, cur_word),
+        _ => return user_str,
+    };
+    
+}
+
+fn char_input (user_str: String, mut word_block: Block, mut in_block: Block, 
+               input_char: char, cur_word: Word) -> String {
+    let ustr = add_char_end(user_str, input_char);
+    compare(ustr, cur_word).update_colour(cur_word).update_word(word_block);
+    ustr
+}
